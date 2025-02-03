@@ -10,7 +10,7 @@
     Connect-ExchangeOnline
 
 #Set up migration endpoint
-    $TargetDeliveryDomain = "pellahealthorg.mail.onmicrosoft.com"
+    $TargetDeliveryDomain = "TenantNane.mail.onmicrosoft.com"
 
     $MigrationEndpointOnprem = get-migrationendpoint | select-object Identity
 
