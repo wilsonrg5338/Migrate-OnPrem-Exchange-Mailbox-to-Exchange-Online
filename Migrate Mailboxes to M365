@@ -1,0 +1,55 @@
+#Author: Reggie Wilson
+#Last Modified: 2/2/25
+
+
+#Exchange Online module install and import
+    #Install-Module ExchangeOnlineManagement
+    #Import-Module ExchangeOnlineManagement
+
+#Connect to Exchange Online
+    Connect-ExchangeOnline
+
+#Set up migration endpoint
+    $TargetDeliveryDomain = "pellahealthorg.mail.onmicrosoft.com"
+
+    $MigrationEndpointOnprem = get-migrationendpoint | select-object Identity
+
+#Create  CSV File
+    #Create array and Do While Loop that will utilize the array
+        $data = @()
+
+        do {
+
+            # Display a message
+                Write-Host "The script is running..."
+
+            # Ask the user for input and add input entry to the array
+                $EmailAddress = Read-Host "Enter email address and press 'Enter' button for each mailbox you wish to migrate. When done type 'exit' and press 'Enter' to stop the loop"
+                $data += [PSCustomObject]@{EmailAddress = $EmailAddress}
+
+        } while ($EmailAddress -ne "exit") # Loop continues until user types 'exit'
+
+        Write-Host "Loop ended."
+
+        #Remove the last element of the array
+            $data = $data[0..($data.Count - 2)]
+
+    #Accept user input for migration batch name
+        $FileName = Read-Host "Enter Migration Batch Name"
+
+        #Export data to CSV file
+            $filepath = "C:\Windows\Temp"
+            $MigrationBatchFilePath = Join-Path -Path $FilePath -ChildPath "$FileName.csv"
+
+            #$data | Export-Csv -Path "C:\Windows\Temp\MigrationBatchData.csv" -NoTypeInformation
+
+            $data | Export-Csv -Path $MigrationBatchFilePath -NoTypeInformation
+
+#Create migration batch
+    $OnboardingBatch = New-MigrationBatch -Name $FileName -SourceEndpoint $MigrationEndpointOnprem.Identity -TargetDeliveryDomain $TargetDeliveryDomain -AutoComplete -CSVData ([System.IO.File]::ReadAllBytes($MigrationBatchFilePath))
+
+#Start migration batch
+    Start-MigrationBatch -Identity $OnboardingBatch.Identity.Name
+
+#Print migration batch name
+    Write-Host "Batch Name:" $FileName
